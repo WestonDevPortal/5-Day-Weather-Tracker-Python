@@ -9,6 +9,15 @@ from timezonefinder import TimezoneFinder
 import pytz
 
 def get_weather_data(city_name, api_key, units):
+    """Brief Description: 
+
+    Args: 
+
+
+    Returns:
+    
+    
+    """
     # Get city coordinates
     geocode_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city_name}&limit=1&appid={api_key}"
     geocode_response = requests.get(geocode_url)
@@ -23,7 +32,15 @@ def get_weather_data(city_name, api_key, units):
     # Get the weather forecast for the coordinates
     forecast_data = get_forecast_data(lat, lon, api_key, units)
 def choose_units():  
-    #Asks the user to choose temperature unit 'metric' for Celsius or 'imperial' for Fahrenheit.
+    """Brief Description: Asks the user to choose temperature unit 'metric' for Celsius or 'imperial' for Fahrenheit.
+
+    Args: 
+
+
+    Returns:
+    
+    
+    """
     while True:
         choice = input("Choose temperature unit - Celsius (C) or Fahrenheit (F): ").strip().upper()
         if choice == 'C':
@@ -42,8 +59,14 @@ def choose_units():
     return forecast_data, timezone, city_name
 
 def get_forecast_data(lat, lon, api_key, units):
-    """
-    Gets the weather forecast data for the given latitude and longitude.
+    """Brief Description: Gets the weather forecast data for the given latitude and longitude.
+
+    Args: 
+
+
+    Returns:
+    
+    
     """
     forecast_url = f"http://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}&units={units}"
     forecast_response = requests.get(forecast_url)
@@ -55,6 +78,15 @@ def get_forecast_data(lat, lon, api_key, units):
     return forecast_response.json()
 
 def process_forecast(forecast_data, timezone):
+    """Brief Description: 
+
+    Args: 
+
+
+    Returns:
+    
+    
+    """
     daily_forecast = {}
     
     for entry in forecast_data['list']:
@@ -70,8 +102,15 @@ def process_forecast(forecast_data, timezone):
     return daily_forecast
 
 def extract_weather_details(entry, local_time):
-    #Extracts weather details from a forecast entry.
+    """Brief Description: Extracts weather details from a forecast entry.
 
+    Args: 
+
+
+    Returns:
+    
+    
+    """
     return {
         'time': local_time.strftime('%I:%M %p'),
         'description': entry['weather'][0]['description'],
@@ -83,7 +122,15 @@ def extract_weather_details(entry, local_time):
     }
 
 def display_forecast(daily_forecast, city_name, units):
-    # Show the weather forecast
+    """Brief Description: Prints out the weather forecast using fstrings
+
+    Args: 
+
+
+    Returns:
+    
+    
+    """
     unit_symbol = '°C' if units == 'metric' else '°F'
     print(f"\nWeather forecast for {city_name}:\n")
     for date, entries in daily_forecast.items():
@@ -93,7 +140,15 @@ def display_forecast(daily_forecast, city_name, units):
             print(f"  Humidity: {entry['humidity']}%, Wind: {entry['wind_speed']} m/s\n")
 
 def choose_units():
-    #Asks the user to choose temperature unit 'metric' for Celsius or 'imperial' for Fahrenheit.
+    """Brief Description: Asks the user to choose temperature unit 'metric' for Celsius or 'imperial' for Fahrenheit.
+
+    Args: 
+
+
+    Returns:
+    
+    
+    """
     while True:
         choice = input("Choose temperature unit - Celsius (C) or Fahrenheit (F): ").strip().upper()
         if choice == 'C':
@@ -104,8 +159,14 @@ def choose_units():
             print("Invalid choice. Please enter 'C' for Celsius or 'F' for Fahrenheit.")
 
 def save_forecast(daily_forecast, city_name, units):
-    """
-    Saves the weather forecast to a text file.
+    """Brief Description: Saves the weather forecast to a text file.
+
+    Args: 
+
+
+    Returns:
+    
+    
     """
     unit_symbol = '°C' if units == 'metric' else '°F'
     filename = f"{city_name}_weather_forecast.txt"
@@ -120,6 +181,15 @@ def save_forecast(daily_forecast, city_name, units):
     print(f"Forecast saved to {filename}")
 
 def main():
+    """Brief Description: 
+
+    Args: 
+
+
+    Returns:
+    
+    
+    """
     api_key = 'ed7899b37027e8607bbb78f8c449701c'
     city_name = input("Enter city name: ").strip()
     if not city_name:
