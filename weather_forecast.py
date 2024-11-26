@@ -1,6 +1,6 @@
 """
 INST 326 Weather Forecast Final Project
-Group Members: Weston Marhefka
+Group Members: Weston Marhefka,  Tiffany Bixler, Alex Lopez
 """
 
 import requests
@@ -8,7 +8,7 @@ from datetime import datetime
 from timezonefinder import TimezoneFinder
 import pytz
 
-def get_weather_data(city_name, api_key):
+def get_weather_data(city_name, api_key, units):
     # Get city coordinates
     geocode_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city_name}&limit=1&appid={api_key}"
     geocode_response = requests.get(geocode_url)
@@ -21,20 +21,28 @@ def get_weather_data(city_name, api_key):
     lat, lon = city_data['lat'], city_data['lon']
     
     # Get the weather forecast for the coordinates
-    weather_url = f"http://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={api_key}"
-    weather_response = requests.get(weather_url)
-    
-    if weather_response.status_code != 200:
-        print("Couldn't retrieve weather data. Please try again later.")
+    forecast_data = get_forecast_data(lat, lon, api_key)
+    if forecast_data is None:
         return None, None, None
     
-    weather_data = weather_response.json()
+    tf = TimezoneFinder()
+    timezone_str = tf.timezone_at(lng=lon, lat=lat)
+    timezone = pytz.timezone(timezone_str)
     
-  
-    timezone_str = TimezoneFinder().timezone_at(lat=lat, lng=lon)
-    timezone = pytz.timezone(timezone_str) if timezone_str else pytz.UTC
+    return forecast_data, timezone, city_name
+
+def get_forecast_data(lat, lon, api_key, units):
+    """
+    Gets the weather forecast data for the given latitude and longitude.
+    """
+    forecast_url = f"http://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}&units={units}"
+    forecast_response = requests.get(forecast_url)
     
-    return weather_data, timezone, city_data['name']
+    if forecast_response.status_code != 200:
+        print("Couldn't get weather forecast data.")
+        return None
+    
+    return forecast_response.json()
 
 def process_forecast(forecast_data, timezone):
     daily_forecast = {}
@@ -46,47 +54,61 @@ def process_forecast(forecast_data, timezone):
         if date_str not in daily_forecast:
             daily_forecast[date_str] = []
         
-        # Adds weather details for each time slot
-        forecast_info = {
-            'time': local_time.strftime('%I:%M %p'),
-            'description': entry['weather'][0]['description'].title(),
-            'temp': entry['main']['temp'],
-            'temp_min': entry['main']['temp_min'],
-            'temp_max': entry['main']['temp_max'],
-            'humidity': entry['main']['humidity'],
-            'wind_speed': entry['wind']['speed']
-        }
-        
-        daily_forecast[date_str].append(forecast_info)
+        weather_details = extract_weather_details(entry, local_time)
+        daily_forecast[date_str].append(weather_details)
     
     return daily_forecast
 
-def display_forecast(daily_forecast, city_name):
+def extract_weather_details(entry, local_time):
+    #Extracts weather details from a forecast entry.
+
+    return {
+        'time': local_time.strftime('%I:%M %p'),
+        'description': entry['weather'][0]['description'],
+        'temp': entry['main']['temp'],
+        'temp_min': entry['main']['temp_min'],
+        'temp_max': entry['main']['temp_max'],
+        'humidity': entry['main']['humidity'],
+        'wind_speed': entry['wind']['speed']
+    }
+
+def display_forecast(daily_forecast, city_name, units):
     # Show the weather forecast
+    unit_symbol = '°C' if units == 'metric' else '°F'
     print(f"\nWeather forecast for {city_name}:\n")
     for date, entries in daily_forecast.items():
         print(f"--- {date} ---")
         for entry in entries:
-            print(f"{entry['time']}: {entry['description']}, {entry['temp']}°C (Low: {entry['temp_min']}°C, High: {entry['temp_max']}°C)")
+            print(f"{entry['time']}: {entry['description']}, {entry['temp']}{unit_symbol} (Low: {entry['temp_min']}{unit_symbol}, High: {entry['temp_max']}{unit_symbol})")
             print(f"  Humidity: {entry['humidity']}%, Wind: {entry['wind_speed']} m/s\n")
 
+
+
+
+
 def main():
-    api_key = '37eff77313390fb273b82a494b012c65'
+    api_key = 'ed7899b37027e8607bbb78f8c449701c'
     city_name = input("Enter city name: ").strip()
-    
     if not city_name:
         print("City name is required.")
         return
     
-    weather_data, timezone, city_name = get_weather_data(city_name, api_key)
+    units = choose_units()
+    
+    weather_data, timezone, city_name = get_weather_data(city_name, api_key, units)
     
     if weather_data is None:
         print("Unable to retrieve weather information.")
         return
     
     daily_forecast = process_forecast(weather_data, timezone)
-    display_forecast(daily_forecast, city_name)
+    display_forecast(daily_forecast, city_name, units)
+    
+    save_choice = input("Would you like to save the forecast to a file? (Y/N): ").strip().upper()
+    if save_choice == 'Y':
+        save_forecast(daily_forecast, city_name, units)
+    else:
+        print("Forecast not saved.")
 
 if __name__ == "__main__":
     main()
-
