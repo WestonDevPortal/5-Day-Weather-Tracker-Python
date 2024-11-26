@@ -1,23 +1,15 @@
 """
 INST 326 Weather Forecast Final Project
-Group Members: Weston Marhefka,  Tiffany Bixler, Alex Lopez
+Group Members: Weston Marhefka, Tiffany Bixler, Alex Lopez
 """
 
 import requests
 from datetime import datetime
 from timezonefinder import TimezoneFinder
 import pytz
+import os
 
 def get_weather_data(city_name, api_key, units):
-    """Brief Description: 
-
-    Args: 
-
-
-    Returns:
-    
-    
-    """
     # Get city coordinates
     geocode_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city_name}&limit=1&appid={api_key}"
     geocode_response = requests.get(geocode_url)
@@ -31,16 +23,21 @@ def get_weather_data(city_name, api_key, units):
     
     # Get the weather forecast for the coordinates
     forecast_data = get_forecast_data(lat, lon, api_key, units)
+    
+    if forecast_data is None:
+        return None, None, None
+    
+    # Get the timezone for the location
+    tf = TimezoneFinder()
+    timezone_str = tf.timezone_at(lng=lon, lat=lat)
+    if timezone_str is None:
+        timezone_str = 'UTC'
+    timezone = pytz.timezone(timezone_str)
+    
+    return forecast_data, timezone, city_data['name']
+
 def choose_units():  
-    """Brief Description: Asks the user to choose temperature unit 'metric' for Celsius or 'imperial' for Fahrenheit.
-
-    Args: 
-
-
-    Returns:
-    
-    
-    """
+    # Asks the user to choose temperature unit 'metric' for Celsius or 'imperial' for Fahrenheit.
     while True:
         choice = input("Choose temperature unit - Celsius (C) or Fahrenheit (F): ").strip().upper()
         if choice == 'C':
@@ -49,24 +46,10 @@ def choose_units():
             return 'imperial'
         else:
             print("Invalid choice. Please enter 'C' for Celsius or 'F' for Fahrenheit.")
-    if forecast_data is None:
-        return None, None, None
-    
-    tf = TimezoneFinder()
-    timezone_str = tf.timezone_at(lng=lon, lat=lat)
-    timezone = pytz.timezone(timezone_str)
-    
-    return forecast_data, timezone, city_name
 
 def get_forecast_data(lat, lon, api_key, units):
-    """Brief Description: Gets the weather forecast data for the given latitude and longitude.
-
-    Args: 
-
-
-    Returns:
-    
-    
+    """
+    Gets the weather forecast data for the given latitude and longitude.
     """
     forecast_url = f"http://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}&units={units}"
     forecast_response = requests.get(forecast_url)
@@ -78,15 +61,6 @@ def get_forecast_data(lat, lon, api_key, units):
     return forecast_response.json()
 
 def process_forecast(forecast_data, timezone):
-    """Brief Description: 
-
-    Args: 
-
-
-    Returns:
-    
-    
-    """
     daily_forecast = {}
     
     for entry in forecast_data['list']:
@@ -102,15 +76,7 @@ def process_forecast(forecast_data, timezone):
     return daily_forecast
 
 def extract_weather_details(entry, local_time):
-    """Brief Description: Extracts weather details from a forecast entry.
-
-    Args: 
-
-
-    Returns:
-    
-    
-    """
+    # Extracts weather details from a forecast entry.
     return {
         'time': local_time.strftime('%I:%M %p'),
         'description': entry['weather'][0]['description'],
@@ -122,51 +88,19 @@ def extract_weather_details(entry, local_time):
     }
 
 def display_forecast(daily_forecast, city_name, units):
-    """Brief Description: Prints out the weather forecast using fstrings
-
-    Args: 
-
-
-    Returns:
-    
-    
-    """
+    # Show the weather forecast
     unit_symbol = '°C' if units == 'metric' else '°F'
     print(f"\nWeather forecast for {city_name}:\n")
     for date, entries in daily_forecast.items():
         print(f"--- {date} ---")
         for entry in entries:
             print(f"{entry['time']}: {entry['description']}, {entry['temp']}{unit_symbol} (Low: {entry['temp_min']}{unit_symbol}, High: {entry['temp_max']}{unit_symbol})")
-            print(f"  Humidity: {entry['humidity']}%, Wind: {entry['wind_speed']} m/s\n")
-
-def choose_units():
-    """Brief Description: Asks the user to choose temperature unit 'metric' for Celsius or 'imperial' for Fahrenheit.
-
-    Args: 
-
-
-    Returns:
-    
-    
-    """
-    while True:
-        choice = input("Choose temperature unit - Celsius (C) or Fahrenheit (F): ").strip().upper()
-        if choice == 'C':
-            return 'metric'
-        elif choice == 'F':
-            return 'imperial'
-        else:
-            print("Invalid choice. Please enter 'C' for Celsius or 'F' for Fahrenheit.")
+            print(f"  Humidity: {entry['humidity']}% | Wind: {entry['wind_speed']} m/s\n")
+        print("\n")
 
 def save_forecast(daily_forecast, city_name, units):
-    """Brief Description: Saves the weather forecast to a text file.
-
-    Args: 
-
-
-    Returns:
-    
-    
+    """
+    Saves the weather forecast to a text file.
     """
     unit_symbol = '°C' if units == 'metric' else '°F'
     filename = f"{city_name}_weather_forecast.txt"
@@ -181,16 +115,7 @@ def save_forecast(daily_forecast, city_name, units):
     print(f"Forecast saved to {filename}")
 
 def main():
-    """Brief Description: 
-
-    Args: 
-
-
-    Returns:
-    
-    
-    """
-    api_key = 'ed7899b37027e8607bbb78f8c449701c'
+    api_key = os.getenv('OPENWEATHER_API_KEY')
     city_name = input("Enter city name: ").strip()
     if not city_name:
         print("City name is required.")
