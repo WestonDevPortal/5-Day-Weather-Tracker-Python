@@ -22,6 +22,16 @@ def get_weather_data(city_name, api_key, units):
     
     # Get the weather forecast for the coordinates
     forecast_data = get_forecast_data(lat, lon, api_key)
+def choose_units():  
+    #Asks the user to choose temperature unit 'metric' for Celsius or 'imperial' for Fahrenheit.
+    while True:
+        choice = input("Choose temperature unit - Celsius (C) or Fahrenheit (F): ").strip().upper()
+        if choice == 'C':
+            return 'metric'
+        elif choice == 'F':
+            return 'imperial'
+        else:
+            print("Invalid choice. Please enter 'C' for Celsius or 'F' for Fahrenheit.")
     if forecast_data is None:
         return None, None, None
     
