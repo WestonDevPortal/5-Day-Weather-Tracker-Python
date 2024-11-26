@@ -21,7 +21,7 @@ def get_weather_data(city_name, api_key, units):
     lat, lon = city_data['lat'], city_data['lon']
     
     # Get the weather forecast for the coordinates
-    forecast_data = get_forecast_data(lat, lon, api_key)
+    forecast_data = get_forecast_data(lat, lon, api_key, units)
 def choose_units():  
     #Asks the user to choose temperature unit 'metric' for Celsius or 'imperial' for Fahrenheit.
     while True:
@@ -92,9 +92,32 @@ def display_forecast(daily_forecast, city_name, units):
             print(f"{entry['time']}: {entry['description']}, {entry['temp']}{unit_symbol} (Low: {entry['temp_min']}{unit_symbol}, High: {entry['temp_max']}{unit_symbol})")
             print(f"  Humidity: {entry['humidity']}%, Wind: {entry['wind_speed']} m/s\n")
 
+def choose_units():
+    #Asks the user to choose temperature unit 'metric' for Celsius or 'imperial' for Fahrenheit.
+    while True:
+        choice = input("Choose temperature unit - Celsius (C) or Fahrenheit (F): ").strip().upper()
+        if choice == 'C':
+            return 'metric'
+        elif choice == 'F':
+            return 'imperial'
+        else:
+            print("Invalid choice. Please enter 'C' for Celsius or 'F' for Fahrenheit.")
 
-
-
+def save_forecast(daily_forecast, city_name, units):
+    """
+    Saves the weather forecast to a text file.
+    """
+    unit_symbol = '°C' if units == 'metric' else '°F'
+    filename = f"{city_name}_weather_forecast.txt"
+   
+    with open(filename, 'w') as file:
+        file.write(f"Weather forecast for {city_name}:\n\n")
+        for date, entries in daily_forecast.items():
+            file.write(f"--- {date} ---\n")
+            for entry in entries:
+                file.write(f"{entry['time']}: {entry['description']}, {entry['temp']}{unit_symbol} (Low: {entry['temp_min']}{unit_symbol}, High: {entry['temp_max']}{unit_symbol})\n")
+                file.write(f"  Humidity: {entry['humidity']}%, Wind: {entry['wind_speed']} m/s\n\n")
+    print(f"Forecast saved to {filename}")
 
 def main():
     api_key = 'ed7899b37027e8607bbb78f8c449701c'
