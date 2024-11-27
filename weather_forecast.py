@@ -14,14 +14,17 @@ import os
 load_dotenv()
 
 def get_weather_data(city_name, api_key, units):
-    """Brief Description: Get city coordinates
+    """Brief Description: Grab city coordinates from the api using the designated city name and units of measurement, accessing it through the api key.
 
     Args: 
-
+    city_name(str): This value is input by the user, and denotes which city the weather data will be grabbed for
+    api_key(int): This value is taken from the separate .env file that the user will have stored on their local computer. Storing the api key in this way
+    helps to protect the api. 
+    units(str): This value will be either "F" or "C" depending on whether or not the user would like to view the temperature in metric or imperial degrees. 
 
     Returns:
-    
-    
+    Three values, the forecast data with a given longitude and latitude, the timezone variable which uses the timezonefinder module to determine timezone based
+    on location, and the geographic code for the given city. 
     """
     geocode_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city_name}&limit=1&appid={api_key}"
     geocode_response = requests.get(geocode_url)
