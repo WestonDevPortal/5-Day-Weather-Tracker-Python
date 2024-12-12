@@ -92,14 +92,13 @@ def get_forecast_data(lat, lon, api_key, units):
     return forecast_response.json()
 
 def process_forecast(forecast_data, timezone):
-    """Brief Description: 
-
+    """Brief Description: Creates an empty dictionary to then assign daily
+    forcast information to, based on the data collected from the OpenWeather API.
+    
     Args: 
-
-
-    Returns:
-    
-    
+    forecast_data(list) = input by user, a list of forecast data
+    timezone(str) = input by user, indicates the appropriate timezone for the forecast data collection
+    Returns: daily_forecast, the dictionary of daily forecast data that is initialized in this  function. 
     """
     daily_forecast = {}
     
