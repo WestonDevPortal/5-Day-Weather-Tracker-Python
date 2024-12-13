@@ -9,6 +9,8 @@ from timezonefinder import TimezoneFinder
 from dotenv import load_dotenv
 import pytz
 import os
+import unittest
+from unittest.mock import patch
 
 # Load API key from .env file
 load_dotenv()
@@ -207,6 +209,60 @@ def main():
         save_forecast(daily_forecast, city_name, units)
     else:
         print("Forecast not saved.")
+        
+class test_functions(unittest.TestCase):
 
+    @patch('__main__.requests.get')
+    def test_get_weather_data(self, mock_api):
+        #creates mock api for testing
+        #mocks api json 
+        #checks for correct city name
+        mock_api.return_value.json.return_value = [{'lat':39.2904, 'lon':76.6122, 'name': 'Baltimore'}]
+        result = get_weather_data('Baltimore', 'fake_api_key','imperial')
+        self.assertEqual(result[2], 'Baltimore')
+        self.assertIsNotNone(result[0])
+
+    def test_choose_units(self):
+        #uses builtins.input to use user input
+        #checks for imperial units
+        with patch('builtins.input', return_value='F'):
+            self.assertEqual(choose_units(), 'imperial')
+
+    @patch('__main__.requests.get')
+    def test_get_forecast_data(self, mock_api):
+        mock_api.return_value.json.return_value = {'list': [{}]}
+        result = get_forecast_data(39.2904, 76.6122, 'fake_api_key', 'metric')
+        self.assertIn('list', result)
+
+    def test_process_forecast(self):
+        timezone = pytz.timezone('US/Eastern')
+        forecast_data = {'list': [{'dt': 1734004800 }]}  
+        result = process_forecast(forecast_data, timezone)
+        self.assertTrue(result)
+
+    def test_extract_weather_details(self):
+        entry = {
+            'dt': 1734004800,
+            'main': {'temp': 53, 'temp_min': 37, 'temp_max': 64, 'humidity': 90},
+            'weather': [{'description': 'light rain'}],
+            'wind': {'speed': 12} 
+        }
+        local_time = datetime.fromtimestamp(1734004800, pytz.timezone('US/Eastern'))
+        result = extract_weather_details(entry, local_time)
+        self.assertEqual(result['temp'], 53)
+
+    def test_display_forecast(self):
+        forecast = { 'Wednesday, December 11, 2024': [{'time': '12:00 PM', 'description': 'light rain', 'temp': 53}]}
+        with patch('builtins.print') as mock_display:
+            display_forecast(forecast, 'Baltimore', 'imperial')
+            mock_display.assert_called()
+
+    def test_save_forecast(self):
+        forecast = { 'Wednesday, December 11, 2024': [{'time': '12:00 PM', 'description': 'light rain', 'temp': 53}]}
+        with patch('builtins.open', unittest.mock.mock_open()) as mock_open:
+            save_forecast(forecast, 'Baltimore', 'imperial')
+            mock_open.assert_called_with('Baltimore_weather_forecast.txt', 'w')
+            
 if __name__ == "__main__":
     main()
+    unittest.main()
