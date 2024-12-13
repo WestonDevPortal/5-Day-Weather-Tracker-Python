@@ -117,14 +117,17 @@ def process_forecast(forecast_data, timezone):
     return daily_forecast
 
 def extract_weather_details(entry, local_time):
-    """Brief Description: Extracts weather details from a forecast entry.
+  """Brief Description: Extracts weather details from a forecast entry and returns the information in a
+  simple, easy to read format, which includes the time, description of the weather, the average temperature,
+  max temperature, and minimum temperature, the humidity percentage, and the average wind speed for that
+  time frame.  
 
     Args: 
-
-
+    entry(str): This refers to the object we have selected within the API database.  
+    local_time(str): This is the time in the city that the user has input
     Returns:
-    
-    
+    time, weather description, temperature, temperature max, temperature min, humidity percentage, and wind speed, 
+    based on the user's entry for city and units. 
     """
     return {
         'time': local_time.strftime('%I:%M %p'),
@@ -137,14 +140,15 @@ def extract_weather_details(entry, local_time):
     }
 
 def display_forecast(daily_forecast, city_name, units):
-    """Brief Description: Show the weather forecast
+    """Brief Description: Shows the weather forecast and adds unit symbol depending upon the user's choice of
+    units. Adds details to the way the forecast information is presented. 
 
     Args: 
-
-
+    daily_forecast(list): This is a list of forecast information for a specific day
+    city_name(str): This is input by the user and is their choice of city for weather
+    units(str): This is input by the user and is either "F" or "C" to choose between imperial and SI units
     Returns:
-    
-    
+    This function returns nothing.
     """
     unit_symbol = '°C' if units == 'metric' else '°F'
     print(f"\nWeather forecast for {city_name}:\n")
@@ -159,11 +163,11 @@ def save_forecast(daily_forecast, city_name, units):
     """Brief Description: Saves the weather forecast to a text file.
 
     Args: 
-
-
+    daily_forecast(list): This is a list of forecast information for a specific day
+    city_name(str): This is input by the user and is their choice of city for weather
+    units(str): This is input by the user and is either "F" or "C" to choose between imperial and SI units
     Returns:
-    
-    
+    This function returns nothing.
     """
     unit_symbol = '°C' if units == 'metric' else '°F'
     filename = f"{city_name}_weather_forecast.txt"
@@ -178,15 +182,6 @@ def save_forecast(daily_forecast, city_name, units):
     print(f"Forecast saved to {filename}")
 
 def main():
-    """Brief Description: 
-
-    Args: 
-
-
-    Returns:
-    
-    
-    """
     api_key = os.getenv('OPENWEATHER_API_KEY')
     city_name = input("Enter city name: ").strip()
     if not city_name:
